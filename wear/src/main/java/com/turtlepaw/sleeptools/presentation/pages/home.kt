@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,9 +52,7 @@ import com.turtlepaw.sleeptools.presentation.theme.SleepTheme
 import com.turtlepaw.sleeptools.utils.AlarmType
 import com.turtlepaw.sleeptools.utils.TimeManager
 import kotlinx.coroutines.delay
-import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalHorologistApi::class, ExperimentalWearFoundationApi::class)
 @Composable
@@ -64,13 +61,13 @@ fun WearHome(
     wakeTime: Pair<LocalTime, AlarmType>,
     nextAlarm: LocalTime,
     timeManager: TimeManager,
-    lastBedtime: LocalDateTime?
+    bedtimeGoal: LocalTime?
 ) {
     SleepTheme {
         val focusRequester = rememberActiveFocusRequester()
         val scalingLazyListState = rememberScalingLazyListState()
-        val formatter = DateTimeFormatter.ofPattern("hh:mm")
-        val formatterWithDetails = DateTimeFormatter.ofPattern("hh:mm a")
+        val formatter = timeManager.getTimeFormatter(false)
+        val formatterWithDetails = timeManager.getTimeFormatter()
         var timeDifference by remember {
             mutableStateOf(timeManager.calculateTimeDifference(wakeTime.first))
         }
@@ -166,7 +163,7 @@ fun WearHome(
                         modifier = Modifier.padding(top = 4.dp)
                     )
                 }
-                if(lastBedtime != null){
+                if(bedtimeGoal != null){
                     item {
                         Text(
                             text = "Tip",
@@ -177,8 +174,7 @@ fun WearHome(
                     }
                     item {
                         Text(
-                            text = "You should go to bed at ${formatterWithDetails.format(lastBedtime)} to be consistent",
-                            textAlign = TextAlign.Center,
+                            text = "Aim for a bedtime around ${formatterWithDetails.format(bedtimeGoal)} to be consistent",                            textAlign = TextAlign.Center,
                             modifier = Modifier.padding(top = 4.dp),
                             //color = Color(0xFF939AA3)
                         )

@@ -3,7 +3,6 @@ package com.turtlepaw.sleeptools.complication
 import android.app.PendingIntent
 import android.content.Context
 import android.graphics.drawable.Icon
-import android.util.Log
 import androidx.wear.watchface.complications.data.ComplicationData
 import androidx.wear.watchface.complications.data.ComplicationType
 import androidx.wear.watchface.complications.data.LongTextComplicationData
@@ -37,8 +36,9 @@ class MainComplicationService : SuspendingComplicationDataSourceService() {
             return null
         }
         return createComplicationData(
-            TimeDifference(7, 30),
+            TimeDifference(8, 5),
             "8h",
+            "5m",
             "Sleep Prediction",
             type,
             this
@@ -74,6 +74,7 @@ class MainComplicationService : SuspendingComplicationDataSourceService() {
         return createComplicationData(
             sleepTime,
             "${sleepTime.hours}h",
+            "${sleepTime.minutes}m",
             "Sleep Prediction",
             request.complicationType,
             this
@@ -82,12 +83,12 @@ class MainComplicationService : SuspendingComplicationDataSourceService() {
 
     private fun createComplicationData(
         sleepTime: TimeDifference,
-        text: String,
+        shortText: String,
+        longText: String,
         contentDescription: String,
         type: ComplicationType,
         context: Context
     ): ComplicationData {
-        Log.d("SleepComplication", "Rendering complication...")
         val monochromaticImage = MonochromaticImage.Builder(
             Icon.createWithResource(context, com.turtlepaw.sleeptools.R.drawable.sleep_white)
         ).build()
@@ -98,50 +99,35 @@ class MainComplicationService : SuspendingComplicationDataSourceService() {
 
         return when (type) {
             ComplicationType.SHORT_TEXT -> ShortTextComplicationData.Builder(
-                text = PlainComplicationText.Builder(text).build(),
+                text = PlainComplicationText.Builder(shortText).build(),
                 contentDescription = PlainComplicationText.Builder(contentDescription).build()
             )
                 .setMonochromaticImage(monochromaticImage)
-//                .setTitle(
-//                    PlainComplicationText.Builder(contentDescription)
-//                        .build()
-//                )
                 .setSmallImage(smallImage)
                 .setTapAction(createActivityIntent(context))
                 .build()
             ComplicationType.LONG_TEXT -> LongTextComplicationData.Builder(
-                text = PlainComplicationText.Builder(text).build(),
+                text = PlainComplicationText.Builder("$shortText $longText").build(),
                 contentDescription = PlainComplicationText.Builder(contentDescription).build()
             )
                 .setMonochromaticImage(monochromaticImage)
-//                .setTitle(
-//                    PlainComplicationText.Builder(contentDescription)
-//                        .build()
-//                )
                 .setSmallImage(smallImage)
                 .setTapAction(createActivityIntent(context))
                 .build()
 
             ComplicationType.RANGED_VALUE -> RangedValueComplicationData.Builder(
                 min = 0f,
-                max = 24f,
+                max = 1f,
                 value = sleepTime.hours.toFloat() / DEFAULT_GOAL,
                 contentDescription = PlainComplicationText.Builder(contentDescription).build(),
             )
                 .setText(
-                    PlainComplicationText.Builder(text).build()
+                    PlainComplicationText.Builder(shortText).build()
                 )
                 .setMonochromaticImage(monochromaticImage)
                 .setTapAction(createActivityIntent(context))
-//                .setTitle(
-//                    PlainComplicationText.Builder(contentDescription)
-//                        .build()
-//                )
                 .setSmallImage(smallImage)
                 .build()
-//            ComplicationType.NO_DATA -> TODO()
-//            ComplicationType.EMPTY -> TODO()
-//            ComplicationType.NOT_CONFIGURED -> TODO()
             ComplicationType.MONOCHROMATIC_IMAGE -> MonochromaticImageComplicationData.Builder(
                 monochromaticImage,
                 contentDescription = PlainComplicationText.Builder(contentDescription).build(),
@@ -151,19 +137,17 @@ class MainComplicationService : SuspendingComplicationDataSourceService() {
                 contentDescription = PlainComplicationText.Builder(contentDescription).build(),
             )
                 .build()
-//            ComplicationType.PHOTO_IMAGE -> TODO()
             else -> throw IllegalArgumentException("unknown complication type")
-//            ComplicationType.GOAL_PROGRESS -> GoalProgressComplicationData.Builder(
-//                value = number,
-//                contentDescription = PlainComplicationText.Builder(contentDescription).build(),
-//                targetValue = 8f
-//            ).build()
-//            ComplicationType.WEIGHTED_ELEMENTS -> TODO()
         }
     }
 
     private fun createActivityIntent(context: Context): PendingIntent {
         val intent = packageManager.getLaunchIntentForPackage(packageName)
-        return PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        return PendingIntent.getActivity(
+            context,
+            0,
+            intent,
+            PendingIntent.FLAG_IMMUTABLE
+        )
     }
 }

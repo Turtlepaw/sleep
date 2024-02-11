@@ -1,11 +1,10 @@
 package com.turtlepaw.sleeptools.utils
 
-import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
 data class TimeDifference(val hours: Long, val minutes: Long)
@@ -25,11 +24,20 @@ enum class SleepQuality(private val title: String, private val color: Int) {
 }
 
 class TimeManager {
+    fun getDayFormatter(): DateTimeFormatter {
+        return DateTimeFormatter.ofPattern("E d")
+    }
+
+    fun getTimeFormatter(withDayState: Boolean = true): DateTimeFormatter {
+        return DateTimeFormatter.ofPattern("h:mm${if(withDayState) " a" else ""}")
+    }
+
     fun calculateSleepQuality(sleepTime: TimeDifference): SleepQuality {
         return if(sleepTime.hours >= 8) SleepQuality.GOOD
         else if(sleepTime.hours in 7..7) SleepQuality.MEDIUM
         else SleepQuality.POOR
     }
+
     fun calculateTimeDifference(targetTime: LocalTime, now: LocalTime = LocalTime.now()): TimeDifference {
         val currentDateTime = LocalTime.now()
         val duration = if (targetTime.isBefore(now)) {
@@ -85,5 +93,16 @@ class TimeManager {
                 AlarmType.USER_DEFINED
             )
         }
+    }
+
+    fun calculateAvgBedtime(bedtimes: Set<Pair<LocalDateTime, BedtimeSensor>?>): LocalTime? {
+        if(bedtimes.isEmpty()) return null
+        val lastBedtimes = bedtimes.take(7)
+        val totalSeconds = lastBedtimes.filterNotNull().sumOf {
+            it.first.toLocalTime().toSecondOfDay()
+        }
+        val averageSeconds = totalSeconds / bedtimes.size
+
+        return LocalTime.ofSecondOfDay(averageSeconds.toLong())
     }
 }

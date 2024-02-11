@@ -57,11 +57,11 @@ import com.turtlepaw.sleeptools.presentation.Routes
 import com.turtlepaw.sleeptools.presentation.components.ItemsListWithModifier
 import com.turtlepaw.sleeptools.presentation.theme.SleepTheme
 import com.turtlepaw.sleeptools.utils.BedtimeSensor
+import com.turtlepaw.sleeptools.utils.TimeManager
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.abs
@@ -77,8 +77,9 @@ fun WearHistory(
     SleepTheme {
         val focusRequester = rememberActiveFocusRequester()
         val scalingLazyListState = rememberScalingLazyListState()
-        val dayFormatter = DateTimeFormatter.ofPattern("E d")
-        val timeFormatter = DateTimeFormatter.ofPattern("h:mm a")
+        val timeManager = TimeManager()
+        val dayFormatter = timeManager.getDayFormatter()
+        val timeFormatter = timeManager.getTimeFormatter()
 
         Box(
             modifier = Modifier
@@ -111,7 +112,7 @@ fun WearHistory(
                     }
                 } else {
                     val daysOfWeek = listOf("S", "M", "T", "W", "T", "F", "S")
-                    val goal = history.filterNotNull().last()
+                    val goal = timeManager.calculateAvgBedtime(history)
                     val bottomAxisValueFormatter =
                         AxisValueFormatter<AxisPosition.Horizontal.Bottom> { x, _ -> daysOfWeek[x.toInt() % daysOfWeek.size] }
                     val maxValue = 10f
@@ -129,7 +130,7 @@ fun WearHistory(
                     val rawData = List(7) { index ->
                         val date = thisWeek.elementAtOrNull(index)
                         if (date != null) {
-                            val bedtimeDifference = Duration.between(goal.first, date.first).toHours().toFloat()
+                            val bedtimeDifference = Duration.between(goal, date.first).toHours().toFloat()
                             Log.d("Render", "Rendering ${dayFormatter.format(date.first)} as ${-bedtimeDifference}")
                             Pair(
                                 false,

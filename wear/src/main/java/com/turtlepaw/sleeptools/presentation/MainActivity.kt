@@ -111,10 +111,6 @@ class MainActivity : ComponentActivity() {
 
         bedtimeViewModel = ViewModelProvider(this, bedtimeViewModelFactory)[BedtimeViewModel::class.java]
         Log.d(tag, "Database refreshed")
-
-        setContent {
-            WearPages(sharedPreferences, bedtimeViewModel, this)
-        }
     }
 }
 
@@ -147,7 +143,7 @@ fun WearPages(sharedPreferences: SharedPreferences, bedtimeViewModel: BedtimeVie
         // Fetches the next alarm from android's alarm manager
         val nextAlarm = alarmManager.fetchAlarms(context)
         // Uses Settings.Globals to get bedtime mode
-        var lastBedtime by remember { mutableStateOf<LocalDateTime?>(null) }
+        var bedtimeGoal by remember { mutableStateOf<LocalTime?>(null) }
         // History
         var history by remember { mutableStateOf<Set<Pair<LocalDateTime, BedtimeSensor>?>>(emptySet()) }
         var loading by remember { mutableStateOf(true) }
@@ -157,9 +153,10 @@ fun WearPages(sharedPreferences: SharedPreferences, bedtimeViewModel: BedtimeVie
             history = bedtimeViewModel.getHistory()
             loading = false
         }
-        LaunchedEffect(key1 = bedtimeViewModel) {
-            // Launch a coroutine to perform async operations
-            lastBedtime = bedtimeViewModel.getLatest()
+
+        LaunchedEffect(key1 = history, key2 = loading) {
+            // Calculate the user's bedtime goal
+            bedtimeGoal = timeManager.calculateAvgBedtime(history)
         }
         // Parses the wake time and decides if it should use
         // user defined or system defined
@@ -183,7 +180,7 @@ fun WearPages(sharedPreferences: SharedPreferences, bedtimeViewModel: BedtimeVie
                     wakeTime,
                     nextAlarm = nextAlarm ?: wakeTime.first,
                     timeManager,
-                    lastBedtime
+                    bedtimeGoal
                 )
             }
             composable(Routes.SETTINGS.getRoute()) {
@@ -338,7 +335,8 @@ fun WearPages(sharedPreferences: SharedPreferences, bedtimeViewModel: BedtimeVie
                         history = mutated
 
                         coroutineScope.launch {
-                            lastBedtime = bedtimeViewModel.getLatest()
+                            // Re-calculate goal
+                            bedtimeGoal = timeManager.calculateAvgBedtime(history)
                         }
                     }
                 )
