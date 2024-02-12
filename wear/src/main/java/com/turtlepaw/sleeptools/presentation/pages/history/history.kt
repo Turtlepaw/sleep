@@ -1,6 +1,5 @@
 package com.turtlepaw.sleeptools.presentation.pages.history
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -58,10 +57,12 @@ import com.turtlepaw.sleeptools.presentation.components.ItemsListWithModifier
 import com.turtlepaw.sleeptools.presentation.theme.SleepTheme
 import com.turtlepaw.sleeptools.utils.BedtimeSensor
 import com.turtlepaw.sleeptools.utils.TimeManager
+import java.time.DayOfWeek
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
 import java.util.Locale
 import kotlin.math.abs
@@ -122,16 +123,20 @@ fun WearHistory(
                         sleepWeekNumber == currentWeekNumber
                     }
 
-                    val thisWeek = unfilteredWeek.groupBy { it.first.toLocalDate() } // Group records by date only
-                        .mapValues { (_, records) ->
-                            records.maxByOrNull { it.first } ?: records.first() // Get the record closest to bedtime or the first record if there's only one
-                        }.values
+                    val today = LocalDate.now()
+                    val startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
+                    val endOfWeek = startOfWeek.plusDays(6)
+
+                    val thisWeekData = history.filterNotNull().filter { (date, _) ->
+                        date.toLocalDate() in startOfWeek..endOfWeek
+                    }
 
                     val rawData = List(7) { index ->
-                        val date = thisWeek.elementAtOrNull(index)
-                        if (date != null) {
-                            val bedtimeDifference = Duration.between(goal, date.first).toHours().toFloat()
-                            Log.d("Render", "Rendering ${dayFormatter.format(date.first)} as ${-bedtimeDifference}")
+                        val currentDate = startOfWeek.plusDays(index.toLong())
+                        val bedtimeDataForDay = thisWeekData.find { it.first.toLocalDate() == currentDate }
+
+                        if (bedtimeDataForDay != null) {
+                            val bedtimeDifference = Duration.between(goal, bedtimeDataForDay.first).toHours().toFloat()
                             Pair(
                                 false,
                                 entryOf(index.toFloat(), abs(bedtimeDifference - maxValue))
@@ -156,47 +161,53 @@ fun WearHistory(
                     item {
                         Spacer(modifier = Modifier.padding(3.dp))
                     }
-                    item {
-                        Chart(
-                            chart = columnChart(
-                                spacing = 2.dp,
-                                columns = rawData.map { (_) ->
-                                    LineComponent(
-                                        thicknessDp = 5f,
-                                        shape = Shapes.roundedCornerShape(allPercent = 40),
-                                        color = MaterialTheme.colors.primary.toArgb(),
-                                    )
-                                }
-                            ),
-                            chartModelProducer = chartEntryModelProducer,
-                            startAxis = rememberStartAxis(
-                                label = textComponent {
-                                    this.color = MaterialTheme.colors.onBackground.toArgb()
-                                },
-                                guideline = LineComponent(
-                                    thicknessDp = 0.5f,
-                                    color = MaterialTheme.colors.surface.toArgb(),
+                    if(thisWeekData.isEmpty()){
+                        item {
+                            Text(text = "No data this week", textAlign = TextAlign.Center)
+                        }
+                    } else {
+                        item {
+                            Chart(
+                                chart = columnChart(
+                                    spacing = 2.dp,
+                                    columns = rawData.map { (_) ->
+                                        LineComponent(
+                                            thicknessDp = 5f,
+                                            shape = Shapes.roundedCornerShape(allPercent = 40),
+                                            color = MaterialTheme.colors.primary.toArgb(),
+                                        )
+                                    }
                                 ),
-                            ),
-                            bottomAxis = rememberBottomAxis(
-                                label = textComponent {
-                                    this.color = MaterialTheme.colors.onBackground.toArgb()
-                                },
-                                valueFormatter = bottomAxisValueFormatter,
-                                axis = LineComponent(
-                                    color = MaterialTheme.colors.surface.toArgb(),
-                                    thicknessDp = 0.5f
-                                )
-                            ),
-                            modifier = Modifier
-                                .height(100.dp)
-                        )
-                    }
-                    item {
-                        Spacer(modifier = Modifier.padding(3.dp))
-                    }
-                    item {
-                        Text(text = "This chart shows how consistent you've been this week", textAlign = TextAlign.Center)
+                                chartModelProducer = chartEntryModelProducer,
+                                startAxis = rememberStartAxis(
+                                    label = textComponent {
+                                        this.color = MaterialTheme.colors.onBackground.toArgb()
+                                    },
+                                    guideline = LineComponent(
+                                        thicknessDp = 0.5f,
+                                        color = MaterialTheme.colors.surface.toArgb(),
+                                    ),
+                                ),
+                                bottomAxis = rememberBottomAxis(
+                                    label = textComponent {
+                                        this.color = MaterialTheme.colors.onBackground.toArgb()
+                                    },
+                                    valueFormatter = bottomAxisValueFormatter,
+                                    axis = LineComponent(
+                                        color = MaterialTheme.colors.surface.toArgb(),
+                                        thicknessDp = 0.5f
+                                    )
+                                ),
+                                modifier = Modifier
+                                    .height(100.dp)
+                            )
+                        }
+                        item {
+                            Spacer(modifier = Modifier.padding(3.dp))
+                        }
+                        item {
+                            Text(text = "This chart shows how consistent you've been this week", textAlign = TextAlign.Center)
+                        }
                     }
 //                    item {
 //                        Spacer(modifier = Modifier.padding(3.dp))
