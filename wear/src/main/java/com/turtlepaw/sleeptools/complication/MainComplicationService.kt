@@ -3,6 +3,8 @@ package com.turtlepaw.sleeptools.complication
 import android.app.PendingIntent
 import android.content.Context
 import android.graphics.drawable.Icon
+import android.util.Log
+import androidx.paging.LOG_TAG
 import androidx.wear.watchface.complications.data.ComplicationData
 import androidx.wear.watchface.complications.data.ComplicationType
 import androidx.wear.watchface.complications.data.LongTextComplicationData
@@ -89,6 +91,7 @@ class MainComplicationService : SuspendingComplicationDataSourceService() {
         type: ComplicationType,
         context: Context
     ): ComplicationData {
+        Log.d(LOG_TAG, "Creating complication with ${sleepTime.hours.toFloat() / DEFAULT_GOAL}")
         val monochromaticImage = MonochromaticImage.Builder(
             Icon.createWithResource(context, com.turtlepaw.sleeptools.R.drawable.sleep_white)
         ).build()
@@ -96,6 +99,7 @@ class MainComplicationService : SuspendingComplicationDataSourceService() {
             Icon.createWithResource(context, com.turtlepaw.sleeptools.R.drawable.sleep_white),
             SmallImageType.ICON
         ).build()
+        val goalProgress = sleepTime.hours.toFloat() / DEFAULT_GOAL
 
         return when (type) {
             ComplicationType.SHORT_TEXT -> ShortTextComplicationData.Builder(
@@ -117,8 +121,8 @@ class MainComplicationService : SuspendingComplicationDataSourceService() {
 
             ComplicationType.RANGED_VALUE -> RangedValueComplicationData.Builder(
                 min = 0f,
-                max = 1f,
-                value = sleepTime.hours.toFloat() / DEFAULT_GOAL,
+                max = if(goalProgress >= 1) goalProgress else 1f,
+                value = goalProgress,
                 contentDescription = PlainComplicationText.Builder(contentDescription).build(),
             )
                 .setText(

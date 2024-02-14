@@ -37,7 +37,6 @@ import com.turtlepaw.sleeptools.utils.SleepQuality
 import com.turtlepaw.sleeptools.utils.TimeDifference
 import com.turtlepaw.sleeptools.utils.TimeManager
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 
 
 private const val RESOURCES_VERSION = "1"
@@ -92,7 +91,7 @@ class MainTileService : SuspendingTileService() {
         val useAlarm = sharedPreferences.getBoolean(Settings.ALARM.getKey(), Settings.ALARM.getDefaultAsBoolean())
         val wakeTimeString = sharedPreferences.getString(Settings.WAKE_TIME.getKey(), Settings.WAKE_TIME.getDefault())
         // Get next alarm
-        val nextAlarm = alarmManager.fetchAlarms(this);
+        val nextAlarm = alarmManager.fetchAlarms(this)
         // Calculate wake time
         // between alarm and wake time
         val wakeTime = timeManager.getWakeTime(
@@ -100,7 +99,7 @@ class MainTileService : SuspendingTileService() {
             nextAlarm,
             wakeTimeString,
             Settings.WAKE_TIME.getDefaultAsLocalTime()
-        );
+        )
         // Calculate time difference
         val sleepTime = timeManager.calculateTimeDifference(wakeTime.first)
         // Calculate sleep quality from time diff
@@ -158,7 +157,6 @@ private fun tileLayout(
     sleepQuality: SleepQuality,
     wakeTime: LocalTime
 ): EdgeContentLayout.Builder {
-    val formatter = DateTimeFormatter.ofPattern("h:mma")
     val deviceParameters = buildDeviceParameters(context.resources)
     return EdgeContentLayout.Builder(deviceParameters)
         .setEdgeContent(
@@ -176,14 +174,14 @@ private fun tileLayout(
         )
         .setPrimaryLabelTextContent(
             Text.Builder(context, "Sleep")
-                .setTypography(6.toInt())
+                .setTypography(Typography.TYPOGRAPHY_TITLE3)
                 .setColor(argb(TileColors.LightText))
                 .build()
         )
         .setSecondaryLabelTextContent(
             LayoutElementBuilders.Column.Builder()
                 .addContent(
-                    Text.Builder(context, "${formatter.format(LocalTime.now())}-${formatter.format(wakeTime)}")
+                    Text.Builder(context, "${sleepQuality.getTitle()} Quality")
                         .setTypography(Typography.TYPOGRAPHY_BODY1)
                         .setColor(argb(TileColors.White))
                         .setModifiers(
@@ -259,7 +257,7 @@ private fun tileLayout(
 @Composable
 fun TilePreview() {
     val timeManager = TimeManager()
-    val timeDifference = timeManager.calculateTimeDifference(LocalTime.of(5, 0));
+    val timeDifference = timeManager.calculateTimeDifference(LocalTime.of(5, 0))
     val sleepQuality = timeManager.calculateSleepQuality(timeDifference)
 
     LayoutRootPreview(root = tileLayout(

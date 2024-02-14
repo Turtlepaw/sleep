@@ -1,7 +1,3 @@
-# Debug
--printusage ./usage.txt
--printseeds ./seeds.txt
-
 # Keep all classes in the application package
 -keep class com.turtlepaw.sleeptools.** { *; }
 

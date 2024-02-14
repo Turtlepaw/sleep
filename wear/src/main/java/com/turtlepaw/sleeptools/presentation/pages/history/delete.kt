@@ -3,7 +3,6 @@ package com.turtlepaw.sleeptools.presentation.pages.history
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,17 +20,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.wear.compose.foundation.ExperimentalWearFoundationApi
+import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.foundation.rememberActiveFocusRequester
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.TimeText
-import androidx.wear.compose.material.dialog.Confirmation
+import androidx.wear.compose.material.scrollAway
+import com.google.android.horologist.annotations.ExperimentalHorologistApi
+import com.google.android.horologist.compose.rotaryinput.rotaryWithScroll
 import com.turtlepaw.sleeptools.R
+import com.turtlepaw.sleeptools.presentation.components.ItemsListWithModifier
 import com.turtlepaw.sleeptools.presentation.theme.SleepTheme
 import com.turtlepaw.sleeptools.utils.BedtimeViewModel
 import kotlinx.coroutines.launch
@@ -43,6 +50,7 @@ sealed class Item {
     class StringItem(val value: String) : Item()
 }
 
+@OptIn(ExperimentalWearFoundationApi::class, ExperimentalHorologistApi::class)
 @Composable
 fun WearHistoryDelete(
     bedtimeViewModel: BedtimeViewModel,
@@ -51,8 +59,10 @@ fun WearHistoryDelete(
     onDelete: (time: Item) -> Unit
 ) {
     SleepTheme {
+        val focusRequester = rememberActiveFocusRequester()
+        val scalingLazyListState = rememberScalingLazyListState()
         val dayFormatter = DateTimeFormatter.ofPattern("E d")
-        DateTimeFormatter.ofPattern("hh:mm a")
+        val timeFormatter = DateTimeFormatter.ofPattern("E h:mm a")
         var history by remember { mutableStateOf<LocalDateTime?>(null) }
         var loading by remember { mutableStateOf(true) }
         val coroutineScope = rememberCoroutineScope()
@@ -74,82 +84,157 @@ fun WearHistoryDelete(
                 .background(MaterialTheme.colors.background),
             contentAlignment = Alignment.Center,
         ) {
-            TimeText()
-            Confirmation(onTimeout = {
-                navigation.popBackStack()
-            }) {
-                if(loading){
+            TimeText(
+                modifier = Modifier.scrollAway(scalingLazyListState)
+            )
+            PositionIndicator(
+                scalingLazyListState = scalingLazyListState
+            )
+            ItemsListWithModifier(
+                modifier = Modifier
+                    .rotaryWithScroll(
+                        reverseDirection = false,
+                        focusRequester = focusRequester,
+                        scrollableState = scalingLazyListState,
+                    ),
+                scrollableState = scalingLazyListState,
+            ) {
+            if(loading){
+                item {
                     CircularProgressIndicator()
-                } else {
-                    Column(
-                        verticalArrangement = Arrangement.Center
-                    ){
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.fillMaxWidth()
-                        ){
-                            Text(text = "Delete ${when (item) {
+                }
+            } else {
+                    item {
+                        Text(
+                            text = "Delete ${when (item) {
                                 is Item.LocalDateTimeItem -> {
                                     dayFormatter.format(item.value)
                                 }
                                 is Item.StringItem -> {
                                     "all"
                                 }
-                            }}?")
-                        }
-                        Spacer(modifier = Modifier.padding(10.dp))
-                        Row(
+                            }}?",
+                            style = MaterialTheme.typography.title3
+                        )
+                    }
+                    item {
+                        Text(
+                            text = "${if(item is Item.LocalDateTimeItem) "${timeFormatter.format(item.value)}" else "All of your recorded bedtimes"} will be permanently deleted",
+                            style = MaterialTheme.typography.body1,
+                            textAlign = TextAlign.Center,
                             modifier = Modifier
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally)
-                        ) {
+                                .padding(
+                                    top = 5.dp
+                                )
+                        )
+                    }
+                    item {
+                        Spacer(modifier = Modifier.padding(3.dp))
+                    }
+                    if(item is Item.StringItem){
+                        item {
+                            Button(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        onDelete(item)
+                                        bedtimeViewModel.deleteAll()
+                                        navigation.popBackStack()
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(
+                                        top = 8.dp,
+                                        start = 8.dp,
+                                        end = 8.dp
+                                    ),
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = MaterialTheme.colors.error
+                                )
+                            ) {
+                                Text(
+                                    text = "Delete All",
+                                    color = Color.Black
+                                )
+                            }
+                        }
+                        item {
                             Button(
                                 onClick = {
                                     navigation.popBackStack()
                                 },
-                                colors = ButtonDefaults.secondaryButtonColors(),
                                 modifier = Modifier
-                                    .size(ButtonDefaults.DefaultButtonSize)
-                                //.wrapContentSize(align = Alignment.Center)
+                                    .fillMaxWidth()
+                                    .padding(
+                                        top = 8.dp,
+                                        start = 8.dp,
+                                        end = 8.dp
+                                    ),
+                                colors = ButtonDefaults.buttonColors(
+                                    backgroundColor = MaterialTheme.colors.surface,
+                                )
                             ) {
-                                // Icon for history button
-                                Icon(
-                                    painter = painterResource(id = R.drawable.cancel),
-                                    contentDescription = "Cancel",
-                                    tint = Color(0xFFE4C6FF),
-                                    modifier = Modifier
-                                        .padding(2.dp)
+                                Text(
+                                    text = "Cancel",
+                                    color = Color.White
                                 )
                             }
-                            Button(
-                                onClick = {
-                                    coroutineScope.launch {
-                                        onDelete(
-                                            item
-                                        )
-
-                                        if(item is Item.LocalDateTimeItem){
-                                            bedtimeViewModel.delete(item.value)
-                                        } else {
-                                            bedtimeViewModel.deleteAll()
-                                        }
-
-                                        navigation.popBackStack()
-                                    }
-                                },
-                                colors = ButtonDefaults.secondaryButtonColors(),
+                        }
+                    } else {
+                        item {
+                            Row(
                                 modifier = Modifier
-                                    .size(ButtonDefaults.DefaultButtonSize)
-                                //.wrapContentSize(align = Alignment.Center)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally)
                             ) {
-                                // Icon for history button
-                                Icon(
-                                    painter = painterResource(id = R.drawable.delete),
-                                    contentDescription = "Delete",
-                                    tint = Color(0xFFE4C6FF),
+                                Button(
+                                    onClick = {
+                                        navigation.popBackStack()
+                                    },
+                                    colors = ButtonDefaults.secondaryButtonColors(),
                                     modifier = Modifier
-                                        .padding(2.dp)
-                                )
+                                        .size(ButtonDefaults.DefaultButtonSize)
+                                    //.wrapContentSize(align = Alignment.Center)
+                                ) {
+                                    // Icon for history button
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.cancel),
+                                        contentDescription = "Cancel",
+                                        tint = Color(0xFFE4C6FF),
+                                        modifier = Modifier
+                                            .padding(2.dp)
+                                    )
+                                }
+                                Button(
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            onDelete(
+                                                item
+                                            )
+
+                                            if(item is Item.LocalDateTimeItem){
+                                                bedtimeViewModel.delete(item.value)
+                                            } else {
+                                                bedtimeViewModel.deleteAll()
+                                            }
+
+                                            navigation.popBackStack()
+                                        }
+                                    },
+                                    colors = ButtonDefaults.secondaryButtonColors(),
+                                    modifier = Modifier
+                                        .size(ButtonDefaults.DefaultButtonSize)
+                                    //.wrapContentSize(align = Alignment.Center)
+                                ) {
+                                    // Icon for history button
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.delete),
+                                        contentDescription = "Delete",
+                                        tint = Color(0xFFE4C6FF),
+                                        modifier = Modifier
+                                            .padding(2.dp)
+                                    )
+                                }
                             }
                         }
                     }

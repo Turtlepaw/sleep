@@ -1,5 +1,6 @@
 package com.turtlepaw.sleeptools.presentation.pages.settings
 
+import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -56,7 +58,8 @@ fun WearSettings(
     setAlarm: (value: Boolean) -> Unit,
     useAlarm: Boolean,
     setAlerts: (value: Boolean) -> Unit,
-    alerts: Boolean
+    alerts: Boolean,
+    context: Context
 ){
     SleepTheme {
         val focusRequester = rememberActiveFocusRequester()
@@ -189,6 +192,49 @@ fun WearSettings(
                         checked = alerts,
                         onCheckedChange = { isEnabled ->
                             setAlerts(isEnabled)
+                            if(isEnabled){
+//                                val alarmIntent = Intent(
+//                                    context,
+//                                    TimeoutReceiver::class.java
+//                                )
+//                                val pendingIntent = PendingIntent.getBroadcast(
+//                                    context,
+//                                    0,
+//                                    alarmIntent,
+//                                    PendingIntent.FLAG_UPDATE_CURRENT
+//                                )
+//                                // get alarm manager and set dynamic alarm
+//                                // (dynamic means it will calculate the avg
+//                                //  bedtime and then schedule the alarm)
+//                                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+//                                val currentTime = System.currentTimeMillis()
+//                                val calendar = Calendar.getInstance().apply {
+//                                    timeInMillis = currentTime
+//                                    set(Calendar.HOUR_OF_DAY, 20) // 8:00 PM
+//                                    set(Calendar.MINUTE, 0)
+//                                    set(Calendar.SECOND, 0)
+//                                    if (timeInMillis <= currentTime) {
+//                                        add(Calendar.DAY_OF_MONTH, 1) // Move to the next day if the current time has already passed 8:00 PM
+//                                    }
+//                                }
+//                                val triggerAtMillis = calendar.timeInMillis
+//                                if(Build.VERSION.SDK_INT == Build.VERSION_CODES.S && alarmManager.canScheduleExactAlarms()){
+//                                    alarmManager.setExact(
+//                                        AlarmManager.RTC_WAKEUP,
+//                                        triggerAtMillis,
+//                                        pendingIntent
+//                                    )
+//                                } else {
+//                                    alarmManager.set(
+//                                        AlarmManager.RTC_WAKEUP,
+//                                        triggerAtMillis,
+//                                        pendingIntent
+//                                    )
+//                                }
+                            } else {
+                                // Unregister tonight's alarm and
+                                // the dynamic alarm manager
+                            }
                         },
                         label = {
                             Text("Alerts", maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -240,6 +286,7 @@ fun SettingsPreview() {
         setAlarm = {},
         useAlarm = Settings.ALARM.getDefaultAsBoolean(),
         setAlerts = {},
-        alerts = Settings.ALERTS.getDefaultAsBoolean()
+        alerts = Settings.ALERTS.getDefaultAsBoolean(),
+        context = LocalContext.current
     )
 }

@@ -14,11 +14,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.datastore.core.DataStore
@@ -72,8 +74,8 @@ enum class Routes(private val route: String) {
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = SettingsBasics.HISTORY_STORAGE_BASE.getKey())
 
 class MainActivity : ComponentActivity() {
-    private lateinit var bedtimeViewModelFactory: BedtimeViewModelFactory
-    private lateinit var bedtimeViewModel: BedtimeViewModel
+    private lateinit var bedtimeViewModelFactory: MutableState<BedtimeViewModelFactory>
+    private lateinit var bedtimeViewModel: MutableState<BedtimeViewModel>
     private val tag = "MainSleepActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,13 +90,21 @@ class MainActivity : ComponentActivity() {
         )
 
         // Initialize your BedtimeViewModelFactory here
-        bedtimeViewModelFactory = BedtimeViewModelFactory(dataStore)
+        bedtimeViewModelFactory = mutableStateOf(
+            BedtimeViewModelFactory(dataStore)
+        )
 
         // Use the factory to create the BedtimeViewModel
-        bedtimeViewModel = ViewModelProvider(this, bedtimeViewModelFactory)[BedtimeViewModel::class.java]
+        bedtimeViewModel = mutableStateOf(
+            ViewModelProvider(this, bedtimeViewModelFactory.value)[BedtimeViewModel::class.java]
+        )
 
         setContent {
-            WearPages(sharedPreferences, bedtimeViewModel, this)
+            WearPages(
+                sharedPreferences,
+                bedtimeViewModel.value,
+                this
+            )
         }
     }
 
@@ -107,9 +117,9 @@ class MainActivity : ComponentActivity() {
             SettingsBasics.SHARED_PREFERENCES.getMode()
         )
 
-        bedtimeViewModelFactory = BedtimeViewModelFactory(dataStore)
+        bedtimeViewModelFactory.value = BedtimeViewModelFactory(dataStore)
 
-        bedtimeViewModel = ViewModelProvider(this, bedtimeViewModelFactory)[BedtimeViewModel::class.java]
+        bedtimeViewModel.value = ViewModelProvider(this, bedtimeViewModelFactory.value)[BedtimeViewModel::class.java]
         Log.d(tag, "Database refreshed")
     }
 }
@@ -206,7 +216,8 @@ fun WearPages(sharedPreferences: SharedPreferences, bedtimeViewModel: BedtimeVie
                         editor.putBoolean(Settings.ALERTS.getKey(), value)
                         editor.apply()
                     },
-                    useAlerts
+                    useAlerts,
+                    context
                 )
             }
             composable(Routes.SETTINGS_BEDTIME.getRoute()) {
@@ -374,6 +385,7 @@ fun SettingsPreview() {
         setAlarm = {},
         useAlarm = Settings.ALARM.getDefaultAsBoolean(),
         setAlerts = {},
-        alerts = Settings.ALERTS.getDefaultAsBoolean()
+        alerts = Settings.ALERTS.getDefaultAsBoolean(),
+        context = LocalContext.current
     )
 }

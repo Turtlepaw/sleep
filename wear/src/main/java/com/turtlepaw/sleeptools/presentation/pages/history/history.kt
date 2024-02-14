@@ -63,8 +63,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.temporal.TemporalAdjusters
-import java.time.temporal.WeekFields
-import java.util.Locale
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -117,11 +115,6 @@ fun WearHistory(
                     val bottomAxisValueFormatter =
                         AxisValueFormatter<AxisPosition.Horizontal.Bottom> { x, _ -> daysOfWeek[x.toInt() % daysOfWeek.size] }
                     val maxValue = 10f
-                    val currentWeekNumber = LocalDate.now().get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear())
-                    val unfilteredWeek = history.filterNotNull().filter { sleepDate ->
-                        val sleepWeekNumber = sleepDate.first.get(WeekFields.of(Locale.getDefault()).weekOfWeekBasedYear())
-                        sleepWeekNumber == currentWeekNumber
-                    }
 
                     val today = LocalDate.now()
                     val startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
@@ -133,10 +126,10 @@ fun WearHistory(
 
                     val rawData = List(7) { index ->
                         val currentDate = startOfWeek.plusDays(index.toLong())
-                        val bedtimeDataForDay = thisWeekData.find { it.first.toLocalDate() == currentDate }
+                        val bedtimeData = thisWeekData.find { it.first.toLocalDate() == currentDate }
 
-                        if (bedtimeDataForDay != null) {
-                            val bedtimeDifference = Duration.between(goal, bedtimeDataForDay.first).toHours().toFloat()
+                        if (bedtimeData != null) {
+                            val bedtimeDifference = Duration.between(bedtimeData.first.toLocalTime(), goal).toHours().toFloat()
                             Pair(
                                 false,
                                 entryOf(index.toFloat(), abs(bedtimeDifference - maxValue))
@@ -284,6 +277,31 @@ fun WearHistory(
         }
     }
 }
+
+/*
+@Composable
+private fun rememberThresholdLine(range: ClosedFloatingPointRange<Float>, color: Color): ThresholdLine {
+    val label =
+        textComponent(
+            color = Color.Black,
+            background = shapeComponent(Shapes.rectShape),
+            padding = thresholdLineLabelPadding,
+            margins = thresholdLineLabelMargins,
+            typeface = android.graphics.Typeface.MONOSPACE,
+        )
+    val line = shapeComponent(color = color)
+    return remember(label, line) {
+        ThresholdLine(thresholdRange = range, labelComponent = label, lineComponent = line)
+    }
+}
+
+private val thresholdLineLabelHorizontalPaddingValue = 8.dp
+private val thresholdLineLabelVerticalPaddingValue = 2.dp
+private val thresholdLineLabelMarginValue = 4.dp
+private val thresholdLineLabelPadding =
+    dimensionsOf(thresholdLineLabelHorizontalPaddingValue, thresholdLineLabelVerticalPaddingValue)
+private val thresholdLineLabelMargins = dimensionsOf(thresholdLineLabelMarginValue)
+ */
 
 fun getRandomTime(amount: Int): MutableSet<Pair<LocalDateTime, BedtimeSensor>> {
     val randomTimes = mutableSetOf<Pair<LocalDateTime, BedtimeSensor>>()
