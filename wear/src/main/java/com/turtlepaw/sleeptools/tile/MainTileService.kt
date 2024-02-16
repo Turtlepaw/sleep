@@ -181,7 +181,7 @@ private fun tileLayout(
         .setSecondaryLabelTextContent(
             LayoutElementBuilders.Column.Builder()
                 .addContent(
-                    Text.Builder(context, "${sleepQuality.getTitle()} Quality")
+                    Text.Builder(context, sleepQuality.getTitle())
                         .setTypography(Typography.TYPOGRAPHY_BODY1)
                         .setColor(argb(TileColors.White))
                         .setModifiers(

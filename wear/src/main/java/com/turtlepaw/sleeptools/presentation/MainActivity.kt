@@ -76,6 +76,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = Set
 class MainActivity : ComponentActivity() {
     private lateinit var bedtimeViewModelFactory: MutableState<BedtimeViewModelFactory>
     private lateinit var bedtimeViewModel: MutableState<BedtimeViewModel>
+    private var lastUpdated = mutableStateOf(LocalTime.now())
     private val tag = "MainSleepActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -103,7 +104,8 @@ class MainActivity : ComponentActivity() {
             WearPages(
                 sharedPreferences,
                 bedtimeViewModel.value,
-                this
+                this,
+                lastUpdated.value
             )
         }
     }
@@ -112,20 +114,30 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         Log.d(tag, "Refreshing database...")
         // Refresh the model
-        val sharedPreferences = getSharedPreferences(
-            SettingsBasics.SHARED_PREFERENCES.getKey(),
-            SettingsBasics.SHARED_PREFERENCES.getMode()
+        bedtimeViewModelFactory = mutableStateOf(
+            BedtimeViewModelFactory(dataStore)
         )
 
-        bedtimeViewModelFactory.value = BedtimeViewModelFactory(dataStore)
+        bedtimeViewModel = mutableStateOf(
+            ViewModelProvider(this, bedtimeViewModelFactory.value)[BedtimeViewModel::class.java]
+        )
 
-        bedtimeViewModel.value = ViewModelProvider(this, bedtimeViewModelFactory.value)[BedtimeViewModel::class.java]
+        lastUpdated = mutableStateOf(
+            LocalTime.now()
+        )
+
+        // Finish
         Log.d(tag, "Database refreshed")
     }
 }
 
 @Composable
-fun WearPages(sharedPreferences: SharedPreferences, bedtimeViewModel: BedtimeViewModel, context: Context){
+fun WearPages(
+    sharedPreferences: SharedPreferences,
+    bedtimeViewModel: BedtimeViewModel,
+    context: Context,
+    lastUpdated: LocalTime
+){
     SleepTheme {
         // Creates a navigation controller for our pages
         val navController = rememberSwipeDismissableNavController()
@@ -159,14 +171,13 @@ fun WearPages(sharedPreferences: SharedPreferences, bedtimeViewModel: BedtimeVie
         var loading by remember { mutableStateOf(true) }
         // Suspended functions
         val coroutineScope = rememberCoroutineScope()
-        LaunchedEffect(key1 = bedtimeViewModel) {
+        LaunchedEffect(key1 = bedtimeViewModel, key2 = lastUpdated) {
+            loading = true
+            // Get all history
             history = bedtimeViewModel.getHistory()
-            loading = false
-        }
-
-        LaunchedEffect(key1 = history, key2 = loading) {
-            // Calculate the user's bedtime goal
+            // Calculate sleep quality
             bedtimeGoal = timeManager.calculateAvgBedtime(history)
+            loading = false
         }
         // Parses the wake time and decides if it should use
         // user defined or system defined
@@ -323,7 +334,8 @@ fun WearPages(sharedPreferences: SharedPreferences, bedtimeViewModel: BedtimeVie
                 WearHistory(
                     navController,
                     history,
-                    loading
+                    loading,
+                    bedtimeGoal
                 )
             }
             composable(Routes.DELETE_HISTORY.getRoute("{id}")) {

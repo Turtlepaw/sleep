@@ -46,6 +46,7 @@ import com.patrykandpatrick.vico.compose.chart.Chart
 import com.patrykandpatrick.vico.compose.chart.column.columnChart
 import com.patrykandpatrick.vico.core.axis.AxisPosition
 import com.patrykandpatrick.vico.core.axis.formatter.AxisValueFormatter
+import com.patrykandpatrick.vico.core.chart.values.AxisValuesOverrider
 import com.patrykandpatrick.vico.core.component.shape.LineComponent
 import com.patrykandpatrick.vico.core.component.shape.Shapes
 import com.patrykandpatrick.vico.core.component.text.textComponent
@@ -63,6 +64,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.temporal.TemporalAdjusters
+import java.util.Calendar
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -71,7 +73,8 @@ import kotlin.random.Random
 fun WearHistory(
     navigate: NavHostController,
     history: Set<Pair<LocalDateTime, BedtimeSensor>?>,
-    loading: Boolean
+    loading: Boolean,
+    goal: LocalTime?
 ) {
     SleepTheme {
         val focusRequester = rememberActiveFocusRequester()
@@ -111,7 +114,6 @@ fun WearHistory(
                     }
                 } else {
                     val daysOfWeek = listOf("S", "M", "T", "W", "T", "F", "S")
-                    val goal = timeManager.calculateAvgBedtime(history)
                     val bottomAxisValueFormatter =
                         AxisValueFormatter<AxisPosition.Horizontal.Bottom> { x, _ -> daysOfWeek[x.toInt() % daysOfWeek.size] }
                     val maxValue = 10f
@@ -169,7 +171,10 @@ fun WearHistory(
                                             shape = Shapes.roundedCornerShape(allPercent = 40),
                                             color = MaterialTheme.colors.primary.toArgb(),
                                         )
-                                    }
+                                    },
+                                    axisValuesOverrider = AxisValuesOverrider.fixed(
+                                        maxY = maxValue
+                                    )
                                 ),
                                 chartModelProducer = chartEntryModelProducer,
                                 startAxis = rememberStartAxis(
@@ -325,10 +330,49 @@ fun getRandomTime(amount: Int): MutableSet<Pair<LocalDateTime, BedtimeSensor>> {
 
 @Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
 @Composable
-fun HistoryPreview() {
+fun RandomHistoryPreview() {
+    val history = getRandomTime(5)
     WearHistory(
         navigate = NavHostController(LocalContext.current),
-        history = getRandomTime(5),
-        loading = false
+        history,
+        loading = false,
+        goal = TimeManager().calculateAvgBedtime(history)
+    )
+}
+
+fun getSunday(): Int {
+    val calendar = Calendar.getInstance()
+    calendar.firstDayOfWeek = Calendar.SUNDAY // Set Sunday as the first day of the week
+    calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek) // Set the calendar to the first day of the week
+    return calendar.get(Calendar.DAY_OF_MONTH)
+}
+
+@Preview(device = WearDevices.SMALL_ROUND, showSystemUi = true)
+@Composable
+fun HistoryPreview() {
+    val now = LocalDate.now()
+    val sunday = LocalDate.of(now.year, now.month, getSunday())
+    WearHistory(
+        navigate = NavHostController(LocalContext.current),
+        history = listOf(
+            LocalDateTime.of(
+                sunday,
+                LocalTime.of(0, 15)
+            ),
+            LocalDateTime.of(
+                sunday.plusDays(1),
+                LocalTime.of(0, 35)
+            ),
+            LocalDateTime.of(
+                sunday.plusDays(2),
+                LocalTime.of(3, 0)
+            ),
+            LocalDateTime.of(
+                sunday.plusDays(3),
+                LocalTime.of(0, 0)
+            )
+        ).map { Pair(it, BedtimeSensor.BEDTIME) }.toSet(),
+        loading = false,
+        goal = LocalTime.of(0, 15) // 1:15AM
     )
 }
