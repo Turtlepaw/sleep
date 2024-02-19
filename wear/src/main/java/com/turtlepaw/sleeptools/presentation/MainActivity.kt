@@ -105,7 +105,7 @@ class MainActivity : ComponentActivity() {
                 sharedPreferences,
                 bedtimeViewModel.value,
                 this,
-                lastUpdated.value
+                lastUpdated
             )
         }
     }
@@ -136,11 +136,12 @@ fun WearPages(
     sharedPreferences: SharedPreferences,
     bedtimeViewModel: BedtimeViewModel,
     context: Context,
-    lastUpdated: LocalTime
+    stateOfLastUpdated: MutableState<LocalTime>
 ){
     SleepTheme {
         // Creates a navigation controller for our pages
         val navController = rememberSwipeDismissableNavController()
+        val lastUpdated by remember { mutableStateOf(stateOfLastUpdated) }
         // Creates a new alarm & time manager
         val timeManager = TimeManager()
         val alarmManager = AlarmsManager()
@@ -171,7 +172,8 @@ fun WearPages(
         var loading by remember { mutableStateOf(true) }
         // Suspended functions
         val coroutineScope = rememberCoroutineScope()
-        LaunchedEffect(key1 = bedtimeViewModel, key2 = lastUpdated) {
+        LaunchedEffect(key1 = bedtimeViewModel, key2 = lastUpdated, key3 = lastUpdated.value) {
+            Log.d("LaunchedEffectSleep", "Updating (${lastUpdated.value})")
             loading = true
             // Get all history
             history = bedtimeViewModel.getHistory()
