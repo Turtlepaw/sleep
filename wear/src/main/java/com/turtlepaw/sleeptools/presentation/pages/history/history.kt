@@ -116,7 +116,7 @@ fun WearHistory(
                     val daysOfWeek = listOf("S", "M", "T", "W", "T", "F", "S")
                     val bottomAxisValueFormatter =
                         AxisValueFormatter<AxisPosition.Horizontal.Bottom> { x, _ -> daysOfWeek[x.toInt() % daysOfWeek.size] }
-                    val maxValue = 10f
+                    val maxValue = 1f
 
                     val today = LocalDate.now()
                     val startOfWeek = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.SUNDAY))
@@ -131,10 +131,13 @@ fun WearHistory(
                         val bedtimeData = thisWeekData.find { it.first.toLocalDate() == currentDate }
 
                         if (bedtimeData != null) {
-                            val bedtimeDifference = Duration.between(bedtimeData.first.toLocalTime(), goal).toHours().toFloat()
+                            val bedtimeDifference = Duration.between(bedtimeData.first.toLocalTime(), goal)
+                            val totalMinutesInDay = 24 * 60
+                            val percent = bedtimeDifference.toMinutes().toDouble() / totalMinutesInDay
+
                             Pair(
                                 false,
-                                entryOf(index.toFloat(), abs(bedtimeDifference - maxValue))
+                                entryOf(index.toFloat(), abs(percent))
                             )
                         } else {
                             Pair(
@@ -173,7 +176,8 @@ fun WearHistory(
                                         )
                                     },
                                     axisValuesOverrider = AxisValuesOverrider.fixed(
-                                        maxY = maxValue
+                                        //maxY = maxValue,
+                                        maxX = 7f
                                     )
                                 ),
                                 chartModelProducer = chartEntryModelProducer,

@@ -76,7 +76,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = Set
 class MainActivity : ComponentActivity() {
     private lateinit var bedtimeViewModelFactory: MutableState<BedtimeViewModelFactory>
     private lateinit var bedtimeViewModel: MutableState<BedtimeViewModel>
-    private var lastUpdated = mutableStateOf(LocalTime.now())
+    private var lastUpdated = mutableStateOf(LocalTime.now().toString())
     private val tag = "MainSleepActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -123,7 +123,7 @@ class MainActivity : ComponentActivity() {
         )
 
         lastUpdated = mutableStateOf(
-            LocalTime.now()
+            LocalTime.now().toString()
         )
 
         // Finish
@@ -136,7 +136,7 @@ fun WearPages(
     sharedPreferences: SharedPreferences,
     bedtimeViewModel: BedtimeViewModel,
     context: Context,
-    stateOfLastUpdated: MutableState<LocalTime>
+    stateOfLastUpdated: MutableState<String>
 ){
     SleepTheme {
         // Creates a navigation controller for our pages
