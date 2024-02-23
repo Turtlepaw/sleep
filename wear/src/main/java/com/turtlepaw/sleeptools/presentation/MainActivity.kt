@@ -15,12 +15,14 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.datastore.core.DataStore
@@ -76,7 +78,6 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = Set
 class MainActivity : ComponentActivity() {
     private lateinit var bedtimeViewModelFactory: MutableState<BedtimeViewModelFactory>
     private lateinit var bedtimeViewModel: MutableState<BedtimeViewModel>
-    private var lastUpdated = mutableStateOf(LocalTime.now().toString())
     private val tag = "MainSleepActivity"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,30 +105,9 @@ class MainActivity : ComponentActivity() {
             WearPages(
                 sharedPreferences,
                 bedtimeViewModel.value,
-                this,
-                lastUpdated
+                this
             )
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.d(tag, "Refreshing database...")
-        // Refresh the model
-        bedtimeViewModelFactory = mutableStateOf(
-            BedtimeViewModelFactory(dataStore)
-        )
-
-        bedtimeViewModel = mutableStateOf(
-            ViewModelProvider(this, bedtimeViewModelFactory.value)[BedtimeViewModel::class.java]
-        )
-
-        lastUpdated = mutableStateOf(
-            LocalTime.now().toString()
-        )
-
-        // Finish
-        Log.d(tag, "Database refreshed")
     }
 }
 
@@ -135,13 +115,11 @@ class MainActivity : ComponentActivity() {
 fun WearPages(
     sharedPreferences: SharedPreferences,
     bedtimeViewModel: BedtimeViewModel,
-    context: Context,
-    stateOfLastUpdated: MutableState<String>
+    context: Context
 ){
     SleepTheme {
         // Creates a navigation controller for our pages
         val navController = rememberSwipeDismissableNavController()
-        val lastUpdated by remember { mutableStateOf(stateOfLastUpdated) }
         // Creates a new alarm & time manager
         val timeManager = TimeManager()
         val alarmManager = AlarmsManager()
@@ -172,8 +150,10 @@ fun WearPages(
         var loading by remember { mutableStateOf(true) }
         // Suspended functions
         val coroutineScope = rememberCoroutineScope()
-        LaunchedEffect(key1 = bedtimeViewModel, key2 = lastUpdated, key3 = lastUpdated.value) {
-            Log.d("LaunchedEffectSleep", "Updating (${lastUpdated.value})")
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val state by lifecycleOwner.lifecycle.currentStateFlow.collectAsState()
+        LaunchedEffect(key1 = bedtimeViewModel, key2 = state) {
+            Log.d("LaunchedEffectSleep", "Updating (${state})")
             loading = true
             // Get all history
             history = bedtimeViewModel.getHistory()
