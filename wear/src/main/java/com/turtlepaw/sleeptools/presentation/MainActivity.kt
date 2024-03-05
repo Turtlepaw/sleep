@@ -148,6 +148,15 @@ fun WearPages(
         // History
         var history by remember { mutableStateOf<Set<Pair<LocalDateTime, BedtimeSensor>?>>(emptySet()) }
         var loading by remember { mutableStateOf(true) }
+        // Parses the wake time and decides if it should use
+        // user defined or system defined
+        var wakeTime = timeManager.getWakeTime(
+            useAlarm,
+            nextAlarm,
+            wakeTimeString,
+            Settings.WAKE_TIME.getDefaultAsLocalTime()
+        )
+        var userWakeTime = timeManager.parseTime(wakeTimeString, Settings.WAKE_TIME.getDefaultAsLocalTime())
         // Suspended functions
         val coroutineScope = rememberCoroutineScope()
         val lifecycleOwner = LocalLifecycleOwner.current
@@ -160,16 +169,15 @@ fun WearPages(
             // Calculate sleep quality
             bedtimeGoal = timeManager.calculateAvgBedtime(history)
             loading = false
+            // Fetch the alarm
+            wakeTime = timeManager.getWakeTime(
+                useAlarm,
+                nextAlarm,
+                wakeTimeString,
+                Settings.WAKE_TIME.getDefaultAsLocalTime()
+            )
+            userWakeTime = timeManager.parseTime(wakeTimeString, Settings.WAKE_TIME.getDefaultAsLocalTime())
         }
-        // Parses the wake time and decides if it should use
-        // user defined or system defined
-        var wakeTime = timeManager.getWakeTime(
-            useAlarm,
-            nextAlarm,
-            wakeTimeString,
-            Settings.WAKE_TIME.getDefaultAsLocalTime()
-        )
-        var userWakeTime = timeManager.parseTime(wakeTimeString, Settings.WAKE_TIME.getDefaultAsLocalTime())
 
         SwipeDismissableNavHost(
             navController = navController,

@@ -119,7 +119,7 @@ fun WearHistoryDelete(
                     }
                     item {
                         Text(
-                            text = "${if(item is Item.LocalDateTimeItem) "${timeFormatter.format(item.value)}" else "All of your recorded bedtimes"} will be permanently deleted",
+                            text = "${if(item is Item.LocalDateTimeItem) timeFormatter.format(item.value) else "All of your recorded bedtimes"} will be permanently deleted",
                             style = MaterialTheme.typography.body1,
                             textAlign = TextAlign.Center,
                             modifier = Modifier
@@ -131,114 +131,118 @@ fun WearHistoryDelete(
                     item {
                         Spacer(modifier = Modifier.padding(3.dp))
                     }
-                    if(item is Item.StringItem){
-                        item {
-                            Button(
-                                onClick = {
-                                    coroutineScope.launch {
-                                        onDelete(item)
-                                        bedtimeViewModel.deleteAll()
-                                        navigation.popBackStack()
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(
-                                        top = 8.dp,
-                                        start = 8.dp,
-                                        end = 8.dp
-                                    ),
-                                colors = ButtonDefaults.buttonColors(
-                                    backgroundColor = MaterialTheme.colors.error
-                                )
-                            ) {
-                                Text(
-                                    text = "Delete All",
-                                    color = Color.Black
-                                )
-                            }
+                @Suppress("KotlinConstantConditions")
+                if(
+                    //item is Item.StringItem
+                    "true" == "true"
+                ){
+                    item {
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    onDelete(item)
+                                    bedtimeViewModel.deleteAll()
+                                    navigation.popBackStack()
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    top = 8.dp,
+                                    start = 8.dp,
+                                    end = 8.dp
+                                ),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = MaterialTheme.colors.error
+                            )
+                        ) {
+                            Text(
+                                text = "Delete${if(item is Item.StringItem) "All" else ""}",
+                                color = Color.Black
+                            )
                         }
-                        item {
+                    }
+                    item {
+                        Button(
+                            onClick = {
+                                navigation.popBackStack()
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    top = 8.dp,
+                                    start = 8.dp,
+                                    end = 8.dp
+                                ),
+                            colors = ButtonDefaults.buttonColors(
+                                backgroundColor = MaterialTheme.colors.surface,
+                            )
+                        ) {
+                            Text(
+                                text = "Cancel",
+                                color = Color.White
+                            )
+                        }
+                    }
+                } else {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally)
+                        ) {
                             Button(
                                 onClick = {
                                     navigation.popBackStack()
                                 },
+                                colors = ButtonDefaults.secondaryButtonColors(),
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(
-                                        top = 8.dp,
-                                        start = 8.dp,
-                                        end = 8.dp
-                                    ),
-                                colors = ButtonDefaults.buttonColors(
-                                    backgroundColor = MaterialTheme.colors.surface,
-                                )
+                                    .size(ButtonDefaults.DefaultButtonSize)
+                                //.wrapContentSize(align = Alignment.Center)
                             ) {
-                                Text(
-                                    text = "Cancel",
-                                    color = Color.White
+                                // Icon for history button
+                                Icon(
+                                    painter = painterResource(id = R.drawable.cancel),
+                                    contentDescription = "Cancel",
+                                    tint = Color(0xFFE4C6FF),
+                                    modifier = Modifier
+                                        .padding(2.dp)
                                 )
                             }
-                        }
-                    } else {
-                        item {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally)
-                            ) {
-                                Button(
-                                    onClick = {
-                                        navigation.popBackStack()
-                                    },
-                                    colors = ButtonDefaults.secondaryButtonColors(),
-                                    modifier = Modifier
-                                        .size(ButtonDefaults.DefaultButtonSize)
-                                    //.wrapContentSize(align = Alignment.Center)
-                                ) {
-                                    // Icon for history button
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.cancel),
-                                        contentDescription = "Cancel",
-                                        tint = Color(0xFFE4C6FF),
-                                        modifier = Modifier
-                                            .padding(2.dp)
-                                    )
-                                }
-                                Button(
-                                    onClick = {
-                                        coroutineScope.launch {
-                                            onDelete(
-                                                item
-                                            )
+                            Button(
+                                onClick = {
+                                    coroutineScope.launch {
+                                        onDelete(
+                                            item
+                                        )
 
-                                            if(item is Item.LocalDateTimeItem){
-                                                bedtimeViewModel.delete(item.value)
-                                            } else {
-                                                bedtimeViewModel.deleteAll()
-                                            }
-
-                                            navigation.popBackStack()
+                                        if(item is Item.LocalDateTimeItem){
+                                            bedtimeViewModel.delete(item.value)
+                                        } else {
+                                            bedtimeViewModel.deleteAll()
                                         }
-                                    },
-                                    colors = ButtonDefaults.secondaryButtonColors(),
+
+                                        navigation.popBackStack()
+                                    }
+                                },
+                                colors = ButtonDefaults.secondaryButtonColors(),
+                                modifier = Modifier
+                                    .size(ButtonDefaults.DefaultButtonSize)
+                                //.wrapContentSize(align = Alignment.Center)
+                            ) {
+                                // Icon for history button
+                                Icon(
+                                    painter = painterResource(id = R.drawable.delete),
+                                    contentDescription = "Delete",
+                                    tint = Color(0xFFE4C6FF),
                                     modifier = Modifier
-                                        .size(ButtonDefaults.DefaultButtonSize)
-                                    //.wrapContentSize(align = Alignment.Center)
-                                ) {
-                                    // Icon for history button
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.delete),
-                                        contentDescription = "Delete",
-                                        tint = Color(0xFFE4C6FF),
-                                        modifier = Modifier
-                                            .padding(2.dp)
-                                    )
-                                }
+                                        .padding(2.dp)
+                                )
                             }
                         }
                     }
                 }
+            }
             }
         }
     }

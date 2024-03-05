@@ -4,11 +4,11 @@
     <selectionStates>
       <SelectionState runConfigName="wear">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-02-18T01:54:43.892334Z">
+        <DropdownSelection timestamp="2024-03-05T22:28:00.989793Z">
           <Target type="DEFAULT_BOOT">
-            <template>
-              <DeviceId pluginId="FirebaseDirectAccess" type="TEMPLATE" identifier="model_id=r11/30" />
-            </template>
+            <handle>
+              <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\olivi\.android\avd\Copy_of_Pixel_Watch_virtual_.avd" />
+            </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection />
