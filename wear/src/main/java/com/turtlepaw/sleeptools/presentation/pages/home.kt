@@ -187,7 +187,7 @@ fun WearHome(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(20.dp, Alignment.CenterHorizontally)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
                     ) {
                         Button(
                             onClick = {
@@ -205,6 +205,27 @@ fun WearHome(
                                 painter = painterResource(id = R.drawable.history),
                                 contentDescription = "History",
                                 tint = Color(0xFFE4C6FF),
+                                modifier = Modifier
+                                    .padding(2.dp)
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                navigate(
+                                    Routes.TIPS.getRoute()
+                                )
+                            },
+                            colors = ButtonDefaults.secondaryButtonColors(),
+                            modifier = Modifier
+                                .size(ButtonDefaults.DefaultButtonSize)
+                            //.wrapContentSize(align = Alignment.Center)
+                        ) {
+                            // Icon for history button
+                            Icon(
+                                painter = painterResource(id = R.drawable.lightbulb),
+                                tint = Color(0xFFE4C6FF),
+                                contentDescription = "Lightbulb",
                                 modifier = Modifier
                                     .padding(2.dp)
                             )
@@ -231,7 +252,6 @@ fun WearHome(
                             )
                         }
                     }
-
                 }
                 item {
                     Text(

@@ -18,7 +18,8 @@ enum class Settings(private val key: String, private val default: Any?) {
     BEDTIME_ENABLED("bedtime_enabled", true),
     BEDTIME_TIMEFRAME("bedtime_timeframe", true),
     BEDTIME_START("bedtime_start", LocalTime.of(20, 0)),
-    BEDTIME_END("bedtime_end", LocalTime.of(8, 0));
+    BEDTIME_END("bedtime_end", LocalTime.of(8, 0)),
+    SUNLIGHT("sunlight", 0);
 
     fun getKey(): String {
         return key
@@ -69,6 +70,22 @@ enum class Settings(private val key: String, private val default: Any?) {
 
             else -> {
                 LocalTime.of(10, 30)
+            }
+        }
+    }
+
+    fun getDefaultAsInt(): Int {
+        return when (default) {
+            is String -> {
+                default.toInt()
+            }
+
+            is Int -> {
+                default
+            }
+
+            else -> {
+                0
             }
         }
     }

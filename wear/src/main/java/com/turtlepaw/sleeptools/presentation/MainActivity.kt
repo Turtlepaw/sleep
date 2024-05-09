@@ -13,6 +13,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -34,6 +35,7 @@ import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import androidx.wear.tooling.preview.devices.WearDevices
 import com.turtlepaw.sleeptools.presentation.pages.TimePicker
+import com.turtlepaw.sleeptools.presentation.pages.Tips
 import com.turtlepaw.sleeptools.presentation.pages.WearHome
 import com.turtlepaw.sleeptools.presentation.pages.history.Item
 import com.turtlepaw.sleeptools.presentation.pages.history.WearHistory
@@ -63,7 +65,8 @@ enum class Routes(private val route: String) {
     SETTINGS_BEDTIME_SENSOR("/settings/bedtime/sensor"),
     TIME_PICKER("/time-picker"),
     HISTORY("/history"),
-    DELETE_HISTORY("/history/delete");
+    DELETE_HISTORY("/history/delete"),
+    TIPS("/tips");
 
     fun getRoute(query: String? = null): String {
         return if(query != null){
@@ -353,6 +356,25 @@ fun WearPages(
                         }
                     }
                 )
+            }
+            composable(Routes.TIPS.getRoute()){
+                var sunlight = sharedPreferences.getInt(
+                    Settings.SUNLIGHT.getKey(),
+                    Settings.SUNLIGHT.getDefaultAsInt()
+                )
+
+                DisposableEffect(Unit) {
+                    sunlight = sharedPreferences.getInt(
+                        Settings.SUNLIGHT.getKey(),
+                        Settings.SUNLIGHT.getDefaultAsInt()
+                    )
+
+                    onDispose {}
+                }
+
+                Tips(sunlight, bedtimeGoal, timeManager){
+                    navController.popBackStack()
+                }
             }
         }
     }
