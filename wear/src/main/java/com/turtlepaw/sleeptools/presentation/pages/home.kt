@@ -165,19 +165,25 @@ fun WearHome(
                 }
                 if(bedtimeGoal != null){
                     item {
-                        Text(
-                            text = "Tip",
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 4.dp),
-                            color = Color(0xFFE4C6FF)
-                        )
-                    }
-                    item {
-                        Text(
-                            text = "Aim for a bedtime around ${formatterWithDetails.format(bedtimeGoal)} to be consistent",                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 4.dp),
-                            //color = Color(0xFF939AA3)
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.padding(top = 5.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.auto_awesome),
+                                contentDescription = "Auto Awesome",
+                                tint = MaterialTheme.colors.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.padding(3.dp))
+                            Text(
+                                text = "New tips available",
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(top = 4.dp),
+                                color = MaterialTheme.colors.primary
+                            )
+                        }
                     }
                 }
                 item {

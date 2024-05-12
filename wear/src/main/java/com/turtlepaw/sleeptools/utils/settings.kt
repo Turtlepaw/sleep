@@ -19,7 +19,8 @@ enum class Settings(private val key: String, private val default: Any?) {
     BEDTIME_TIMEFRAME("bedtime_timeframe", true),
     BEDTIME_START("bedtime_start", LocalTime.of(20, 0)),
     BEDTIME_END("bedtime_end", LocalTime.of(8, 0)),
-    SUNLIGHT("sunlight", 0);
+    SUNLIGHT("sunlight", 0),
+    LAST_BEDTIME("last_bedtime", null);
 
     fun getKey(): String {
         return key

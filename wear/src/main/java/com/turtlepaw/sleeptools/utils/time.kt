@@ -54,11 +54,16 @@ class TimeManager {
         else TimeDifference(hours, minutes)
     }
 
-    fun parseTime(time: String?, fallback: LocalTime?): LocalTime {
+    fun parseTime(time: String?, fallback: LocalTime? = null): LocalTime {
+        return parseTimeOrNull(time) ?: (fallback ?: LocalTime.MIN)
+    }
+
+    fun parseTimeOrNull(time: String?): LocalTime? {
+        if(time == null) return null
         return try {
             LocalTime.parse(time)
         } catch (e: DateTimeParseException) {
-            fallback ?: LocalTime.NOON
+            null
         }
     }
 

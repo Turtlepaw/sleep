@@ -77,6 +77,7 @@ dependencies {
     implementation(libs.vico.core)
     implementation(libs.androidx.health.services.client)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.accompanist.permissions)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)

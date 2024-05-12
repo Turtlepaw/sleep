@@ -12,6 +12,10 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
     <uses-permission android:name="com.turtlepaw.sunlight.permission.SEND_SUNLIGHT_BROADCAST"/>
 
+    <queries>
+        <package android:name="com.turtlepaw.sunlight" />
+    </queries>
+
     <application
         android:name=".SleepApplication"
         android:allowBackup="true"

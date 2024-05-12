@@ -6,6 +6,7 @@
 
 package com.turtlepaw.sleeptools.presentation
 
+import android.Manifest
 import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -34,6 +35,8 @@ import androidx.wear.compose.navigation.SwipeDismissableNavHost
 import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import androidx.wear.tooling.preview.devices.WearDevices
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.turtlepaw.sleeptools.presentation.pages.TimePicker
 import com.turtlepaw.sleeptools.presentation.pages.Tips
 import com.turtlepaw.sleeptools.presentation.pages.WearHome
@@ -114,6 +117,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun WearPages(
     sharedPreferences: SharedPreferences,
@@ -180,6 +184,11 @@ fun WearPages(
                 Settings.WAKE_TIME.getDefaultAsLocalTime()
             )
             userWakeTime = timeManager.parseTime(wakeTimeString, Settings.WAKE_TIME.getDefaultAsLocalTime())
+        }
+
+        val permission = rememberPermissionState(Manifest.permission.ACTIVITY_RECOGNITION)
+        LaunchedEffect(Unit) {
+            permission.launchPermissionRequest()
         }
 
         SwipeDismissableNavHost(
@@ -362,6 +371,12 @@ fun WearPages(
                     Settings.SUNLIGHT.getKey(),
                     Settings.SUNLIGHT.getDefaultAsInt()
                 )
+                var lastSleepTime = timeManager.parseTimeOrNull(
+                    sharedPreferences.getString(
+                        Settings.LAST_BEDTIME.getKey(),
+                        null
+                    )
+                )
 
                 DisposableEffect(Unit) {
                     sunlight = sharedPreferences.getInt(
@@ -369,10 +384,24 @@ fun WearPages(
                         Settings.SUNLIGHT.getDefaultAsInt()
                     )
 
+                    lastSleepTime = timeManager.parseTimeOrNull(
+                        sharedPreferences.getString(
+                            Settings.LAST_BEDTIME.getKey(),
+                            null
+                        )
+                    )
+
                     onDispose {}
                 }
 
-                Tips(sunlight, bedtimeGoal, timeManager){
+                Tips(
+                    context,
+                    sunlight,
+                    bedtimeGoal,
+                    timeManager,
+                    history.lastOrNull()?.first?.toLocalTime(),
+                    lastSleepTime
+                ){
                     navController.popBackStack()
                 }
             }

@@ -99,8 +99,7 @@ fun WearSettings(
                             openWakeTimePicker()
                         },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp),
+                            .fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = Color(0xFFE4C6FF)
                         )
@@ -126,9 +125,7 @@ fun WearSettings(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(
-                                top = 8.dp,
-                                start = 8.dp,
-                                end = 8.dp
+                                top = 8.dp
                             ),
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = Color(0xFFE4C6FF)
@@ -146,8 +143,6 @@ fun WearSettings(
                             .fillMaxWidth()
                             .padding(
                                 top = 8.dp,
-                                start = 8.dp,
-                                end = 8.dp
                             ),
                         checked = useAlarm,
                         onCheckedChange = { isEnabled ->
@@ -188,7 +183,7 @@ fun WearSettings(
                     ToggleChip(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp),
+                            .padding(vertical = 8.dp),
                         checked = alerts,
                         onCheckedChange = { isEnabled ->
                             setAlerts(isEnabled)

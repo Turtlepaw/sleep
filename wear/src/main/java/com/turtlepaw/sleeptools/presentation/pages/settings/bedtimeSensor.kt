@@ -84,9 +84,7 @@ fun WearBedtimeSensorSetting(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(
-                                top = 8.dp,
-                                start = 8.dp,
-                                end = 8.dp
+                                top = 8.dp
                             ),
                         checked = state == BedtimeSensor.BEDTIME,
                         onCheckedChange = {
@@ -112,9 +110,7 @@ fun WearBedtimeSensorSetting(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(
-                                top = 8.dp,
-                                start = 8.dp,
-                                end = 8.dp
+                                top = 8.dp
                             ),
                         checked = state == BedtimeSensor.CHARGING,
                         onCheckedChange = {

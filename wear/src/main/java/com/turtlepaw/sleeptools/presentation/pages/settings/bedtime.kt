@@ -101,9 +101,7 @@ fun WearBedtimeSettings(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(
-                                top = 8.dp,
-                                start = 8.dp,
-                                end = 8.dp
+                                top = 8.dp
                             ),
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = Color(0xFFE4C6FF)
@@ -119,7 +117,7 @@ fun WearBedtimeSettings(
                     ToggleChip(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(8.dp),
+                            .padding(vertical = 8.dp),
                         checked = state,
                         onCheckedChange = { isEnabled ->
                             setTimeframe(isEnabled)
@@ -163,8 +161,7 @@ fun WearBedtimeSettings(
                             navigator.navigate(Routes.SETTINGS_TIMEFRAME_START.getRoute())
                         },
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 10.dp),
+                            .fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = Color(0xFFE4C6FF)
                         )
@@ -184,9 +181,7 @@ fun WearBedtimeSettings(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(
-                                top = 8.dp,
-                                start = 8.dp,
-                                end = 8.dp
+                                top = 8.dp
                             ),
                         colors = ButtonDefaults.buttonColors(
                             backgroundColor = Color(0xFFE4C6FF)
