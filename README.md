@@ -1,3 +1,7 @@
+### Archive Notice
+> [!WARNING]
+> This app has merged into [Health](https://github.com/Turtlepaw/health), a collection of useful health apps.
+
 <div align="center">
 <img src="./assets/banner.png" width="700" alt="Banner"/>
 <h3>Sleep tools is an app for Wear OS that helps users discover patterns in their sleep schedule</h3>
